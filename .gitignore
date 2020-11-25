@@ -1,6 +1,3 @@
-# VSCode workspaces
-*.code-workspace
-
 # Logs
 logs
 *.log
@@ -95,3 +92,4 @@ typings/
 
 # Heroku
 /*.env
+.vscode/

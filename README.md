@@ -1,45 +1,53 @@
 <a href="https://www.hypertrack.com/">
-    <img src="https://hypertrack-blog-img.s3-us-west-2.amazonaws.com/Green0svg.svg" alt="HyperTrack logo" title="HyperTrack" align="right" height="40" />
+    <img src="https://www.hypertrack.com/green.eeca143346e01b96d600.svg" alt="HyperTrack logo" title="HyperTrack" align="right" height="40" />
 </a>
 
-# Sample Frontend Integration: Placeline
+# Sample Backend Integration
 
-![](https://img.shields.io/circleci/build/gh/hypertrack/placeline-nextjs?style=flat-square)
-![](https://img.shields.io/david/hypertrack/placeline-nextjs?style=flat-square)
-![](https://img.shields.io/github/license/hypertrack/placeline-nextjs?style=flat-square)
+![](https://img.shields.io/circleci/build/gh/hypertrack/backend-nodejs?style=flat-square)
+![](https://img.shields.io/david/hypertrack/backend-nodejs?style=flat-square)
+![](https://img.shields.io/github/license/hypertrack/backend-nodejs?style=flat-square)
 
-Placeline is a ReactJS/NextJS sample application to track the movement of your mobile workforce through the workday. Use this web app to track the live location, activity, and outages of your business assets; track summaries for miles driven, steps walked, stops taken and inactive times; drill down to device locations organized in activity segments for each day, and export selected segments to 3rd party applications such as expense management software.
-
-> 💬 [Check out this blog post](https://hypertrack.com/blog/2019/09/09/open-sourcing-placeline-a-sample-app-to-track-the-movement-history-of-your-workforce/) to learn why this is important, how HyperTrack is using it internally, and how it all ties together with HyperTrack platform.
-
-Placeline is built with HyperTrack Views.
+A sample NodeJS/ExpressJS server integration with the HyperTrack platform. It consumes the HyperTrack APIs and Webhooks and exposes them through REST API endpoints for front-end or mobile application usage.
 
 ## Overview
 
-- [Sample Frontend Integration: Placeline](#sample-frontend-integration-placeline)
+- [Sample Backend Integration](#sample-backend-integration)
   - [Overview](#overview)
   - [Features](#features)
+  - [Possibilities](#possibilities)
+  - [How it works](#how-it-works)
   - [Requirements](#requirements)
   - [Installation and setup](#installation-and-setup)
     - [Local setup](#local-setup)
     - [Heroku setup](#heroku-setup)
   - [Usage](#usage)
+    - [REST API Endpoints](#rest-api-endpoints)
+    - [Webhooks](#webhooks)
   - [Related](#related)
   - [Credits](#credits)
   - [License](#license)
 
 ## Features
 
-| Dashboard                        |
-| -------------------------------- |
-| <img src="public/dashboard.png"> |
+- One-click deploy to Heroku (using ONLY free add-ons)
+- Synchronize all existing devices and trips on startup
+- Store devices, trips, and all webhook records in MongoDB with Mongoose
+- Receive webhooks and test locally with [Localtunnel](https://github.com/localtunnel/localtunnel)
 
-- Embed HyperTrack Views in a dashboard
-- Map the live locations of all devices
-- Search and browse devices by day and timezone
-- Drill down to live tracking views and day’s history for each device
-- Review tracking summaries for duration, distance, activities, and more
-- Export tracking summaries
+## How it works
+
+The project uses the Model-Routes-Controllers pattern ([read more](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/routes)) as the project structure. With that, the project structure looks like this:
+
+- **/common**: Common functionality for HyperTrack API usage
+- **/controllers**: Handlers for all routes
+- **/models**: Mongoose Schema definitions for all relevant entities
+- **/routes**: Definition of available REST API endpoints
+- **index.js**: Main entry point for ExpressJS, setup of the server (CORS, Mongoose), and sync of devices and trips through the HyperTrack API
+
+Once started, the project will collect and store all available devices and trips from the HyperTrack API. The Mongoose setup will ensure that missing collection definitions will be created. Once that is complete, the server will listen to HyperTrack Webhooks to come in. Every Webhook will create or update records in the database and execute related tasks (e.g. complete a trip from a trip completion webhook). The server will expose REST API endpoints in CRUD fashion for all available entities (trips, devices, etc).
+
+> _Note_: For the sake of simplicity, the REST API endpoints **do not** enforce any auth mechanisms. Before going into production, ensure to secure your server communication.
 
 ## Requirements
 
@@ -47,6 +55,7 @@ The goal of this project is to get you to a deployed integration in minutes. For
 
 - [ ] Set up a [HyperTrack account](https://dashboard.hypertrack.com/signup) and obtain your `AccountId` and `SecretKey` from the [Dashboard](https://dashboard.hypertrack.com/)
 - [ ] Integrate the HyperTrack SDK in your mobile application ([iOS](https://github.com/hypertrack/quickstart-ios), [Android](https://github.com/hypertrack/quickstart-android), or [React Native](https://github.com/hypertrack/quickstart-react-native)) or use our sample app to send location data ([iOS](https://github.com/hypertrack/live-app-ios) or [Android](https://github.com/hypertrack/live-app-android))
+- [ ] Set up a [Heroku account](https://signup.heroku.com/) for deployment
 
 ## Installation and setup
 
@@ -68,7 +77,11 @@ Next, you need to set your environmental variables. The project uses [dotenv](ht
 
 ```shell
 # HyperTrack
-HT_PUBLISHABLE_KEY = <HT_PUBLISHABLE_KEY>
+HT_ACCOUNT_ID = <YOUR_ACCOUNT_ID>
+HT_SECRET_KEY = <YOUR_SECRET_KEY>
+
+# MongoDB
+MONGODB_URI = <YOUR_MONGODB_URI>
 ```
 
 With the dependencies and configuration in place, you can start the server in development mode:
@@ -81,41 +94,95 @@ npm run dev
 yarn dev
 ```
 
-**Congratulations!** You just completed a web app for your HyperTrack integration.
+On startup, Localtunnel is used to generate a publicly accessible URL for your local server (`https://<unqiue_id>.localtunnel.me`). A new browser window will open with your unique, temporary domain. If successful, the browser window should show:
+
+```text
+HyperTrack Backend is RUNNING
+```
+
+**Congratulations!** You just completed the integration with HyperTrack APIs and Webhooks.
 
 ### Heroku setup
 
 This project is set up to be deployed to Heroku within seconds. You need a Heroku account. All you need to do is to click on the one-click-deploy button below. It will provide the following services and add-ons:
 
 - Web Dyno - to run the server on Heroku (free)
-- NodeJS buildpack - to run NextJS on Heroku (free)
+- NodeJS buildpack - to run NodeJS/ExpressJS on Heroku (free)
+- MongoLab - hosted MongoDB database (free)
 - PaperTrail - hosted logging system (free)
 
 Similar to the local setup, you need to have your keys ready before the deployment. The Heroku page will ask you for the following:
 
-- `HT_PUBLISHABLE_KEY`: Your HyperTrack publishable key
+- `HT_ACCOUNT_ID`: Your HyperTrack AccountId from the [HyperTrack Dashboard](https://dashboard.hypertrack.com/setup)
+- `HT_SECRET_KEY`: Your HyperTrack SecretKey from the [HyperTrack Dashboard](https://dashboard.hypertrack.com/setup)
 
 You need to enter all of these keys for the project to run successfully. Heroku uses the input to pre-set the environmental variables for the deployment. You can change after the setup as well.
 
 **Deploy this project now on Heroku:**
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/hypertrack/placeline-nextjs)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/hypertrack/backend-nodejs)
 
 ## Usage
 
-Once the main page (_index.js_) is opened, it will load an embeddable view from HyperTrack to display all tracked devices. The HyperTrack View enables interaction, so drilling down onto a single device and its history is easily possible.
+The project exposes all devices and trip data through a variety of interfaces. Below is an explanation of each interface, setup steps, and usage details.
 
-## Related
+### REST API Endpoints
 
-This web application is using [HyperTrack Views](https://www.hypertrack.com/docs/guides/track-devices-with-api#embed-views-in-your-dashboard).
+ExpressJS exposes API endpoints based on the routes defined in the _/route_ folder. Here is a breakdown of available routes, methods, and use cases.
+
+> _Note_: All the endpoints below respond with data from the MongoDB database, not directly from the HyperTrack API.
+
+| Route                            | Methods     | Use Cases                                                                                          |
+| -------------------------------- | ----------- | -------------------------------------------------------------------------------------------------- |
+| /                                | GET         | Status checking endpoint, returns plain text message                                               |
+|                                  |
+| /devices                         | GET         | Get all tracked [devices](https://www.hypertrack.com/docs/references/#references-apis-devices)                                |
+| /devices/{device_id}             | GET, DELETE | Get/delete device by device ID                                                                     |
+| /devices/{device_id}/trips       | GET         | Get all [trips](https://www.hypertrack.com/docs/references/#references-apis-trips) for specific device                        |
+| /trips                           | GET, POST   | Get all or create new trip                                                                         |
+| /trips/{trip_id}                 | GET, POST   | Get/update a trip by trip ID                                                                       |
+| /device-status                   | GET, POST   | Get all or save new [device status update](https://www.hypertrack.com/docs/references/#references-webhooks-device-status-payload)     |
+| /device-status/{device_id}       | GET         | Get all device status updates for specific device                                                  |
+| /device-status/{device_id}/last  | GET         | Get last device status update for specific device                                                  |
+| /battery-status                  | GET, POST   | Get all or save new [battery status update](https://www.hypertrack.com/docs/references/#references-webhooks-battery-payload)          |
+| /battery-status/{device_id}      | GET         | Get all battery status updates for specific device                                                 |
+| /battery-status/{device_id}/last | GET         | Get last battery status update for specific device                                                 |
+| /locations                       | GET, POST   | Get all or save new [location update](https://www.hypertrack.com/docs/references/#references-webhooks-location-payload)               |
+| /locations/{device_id}           | GET         | Get all location updates for specific device                                                       |
+| /locations/{device_id}/last      | GET         | Get last location update for specific device                                                       |
+| /trip-status                     | GET, POST   | Get all or save new [trip status update](https://www.hypertrack.com/docs/references/#references-webhooks-trip-payload)                |
+| /trip-status/{device_id}         | GET         | Get all trip status updates for specific trip                                                      |
+| /trip-status/{device_id}/last    | GET         | Get last trip status update for specific trip                                                      |
+|                                  |
+| /hypertrack                      | POST        | Endpoint to receive [HyperTrack Webhooks](https://www.hypertrack.com/docs/references/#references-webhooks). Read more below. |
+
+### Webhooks
+
+<p align="center">
+  <img src="static/sample-webhook.png" />
+</p>
+
+With the deployment of this project, you will have an endpoint listening to incoming webhooks. Depending on the deployment (local/Heroku/etc), your domain will change, but the available Webhook endpoint will end with `/hypertrack`. Here are samples of the full webhook URL that you will have to enter on the HyperTrack Dashboard:
+
+- Heroku: `https://<heroku_app_name>.herokuapp.com/hypertrack`
+- Localtunnel: `https://<alias>.localtunnel.me/hypertrack` (alias can be configured in the package.json)
+
+All webhooks will be processed and stored to the MongoDB. Some updates might update other database records (e.g. battery status update reflected in device records). It is important to note that `destination_arrival` [trip webhooks](https://www.hypertrack.com/docs/references/#references-webhooks-trip-payload) will trigger [trip completion API calls](https://www.hypertrack.com/docs/references/#references-apis-trips-complete-trip) two minutes after the webhook arrival. You can change this behavior by modifying the `routes/webhook.route.js` file.
+
+> _Note_: You can look into the console logs to review all received webhooks. This also allows you to run through the one-time verification for HyperTrack Webhooks.
 
 ## Credits
 
 This project uses the following open-source packages:
 
-- [nextjs](https://github.com/zeit/next.js/): SSR React Framework
+- [body-parser](https://github.com/expressjs/body-parser): Node.js body parsing middleware
+- [cors](https://expressjs.com/en/resources/middleware/cors.html): Node.js CORS middleware
 - [dotenv](https://github.com/motdotla/dotenv): Load environment variables from .env files
-- [ant-design](https://github.com/ant-design/ant-design): An enterprise-class UI design language and React implementation
+- [express](https://expressjs.com/): Web framework for Node.js
+- [localtunnel](https://github.com/localtunnel/localtunnel): Expose your localhost to the world for testing and sharing
+- [mongoose](https://mongoosejs.com/): Mongodb object modeling for node.js
+- [nodemon](https://github.com/remy/nodemon): Monitor for any changes in your node.js application and automatically restart the server
+- [request](https://github.com/request/request): Simplified HTTP client
 
 ## License
 
