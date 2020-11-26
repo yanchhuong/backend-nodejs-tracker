@@ -38,7 +38,7 @@ app.get("/", (req, res) => res.send("HyperTrack Backend is RUNNING"));
 http.listen(process.env.PORT || 8080, function() {
   console.log(`listening on *:${process.env.PORT || 8080}`);
   
-  console.log(`listening db *:${process.env.MONGODB_URI`);
+  console.log(`listening db *:${process.env.MONGODB_URI}`);
 
   // update all devices in DB using HyperTrack API
   updateAllDevices();
