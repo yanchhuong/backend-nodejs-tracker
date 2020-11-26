@@ -20,6 +20,9 @@
   "engines": {
     "node": "10.x"
   },
+  "resolutions": {
+    "mongodb": "^3.3.4-rc0"
+  },
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

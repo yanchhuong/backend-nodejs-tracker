@@ -17,7 +17,8 @@ app.use(cors());
 // setup Mongoose
 mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  enableGeoIndexing: true
 });
 
 mongoose.set("debug", process.env.NODE_ENV !== "production");
